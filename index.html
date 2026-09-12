@@ -585,4 +585,110 @@ function render(){
         <a class="buy-btn" href="${escapeHtml(item.url)}" target="_blank" rel="noopener noreferrer">Beli di Shopee</a>
         <button class="icon-btn" title="Salin link" onclick="copyLink('${item.id}')">
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>
-  </button>
+</button>
+<button class="icon-btn" title="Hapus" onclick="deleteLink('${item.id}')">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"/><path d="M10 11v6"/><path d="M14 11v6"/><path d="M9 6V4a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v2"/></svg>
+        </button>
+      </div>
+    </div>
+  `).join('')}</div>`;
+}
+
+window.copyLink = async function(id){
+  const item = links.find(l => l.id === id);
+  if(!item) return;
+  try{
+    await navigator.clipboard.writeText(item.url);
+    showToast('Link produk disalin');
+  }catch(e){
+    showToast('Gagal menyalin link');
+  }
+};
+
+window.deleteLink = async function(id){
+  links = links.filter(l => l.id !== id);
+  render();
+  await saveLinks();
+  showToast('Produk dihapus dari etalase');
+};
+
+form.addEventListener('submit', async (e) => {
+  e.preventDefault();
+  formMsg.textContent = '';
+  try{
+    const title = document.getElementById('f-title').value.trim();
+    const urlRaw = document.getElementById('f-url').value.trim();
+    const categoryRaw = document.getElementById('f-category').value.trim();
+    const price = document.getElementById('f-price').value.trim();
+
+    if(!title || !urlRaw){
+      formMsg.textContent = 'Isi nama produk dan link Shopee dulu, ya.';
+      return;
+    }
+    const url = normalizeUrl(urlRaw);
+    try{ new URL(url); }catch(e){
+      formMsg.textContent = 'Link yang dimasukkan belum valid.';
+      return;
+    }
+    const category = categoryRaw || DEFAULT_CATEGORY;
+
+    links.push({
+      id: 'l' + Date.now() + Math.random().toString(36).slice(2,7),
+      title, url, category, price,
+      createdAt: Date.now()
+    });
+    render();
+    form.reset();
+    document.getElementById('f-title').focus();
+    await saveLinks();
+    showToast('Produk ditambahkan ke etalase');
+  }catch(err){
+    console.error('Gagal menambah produk:', err);
+    formMsg.textContent = 'Terjadi error: ' + (err && err.message ? err.message : String(err));
+  }
+});
+
+document.getElementById('clearAll').addEventListener('click', async () => {
+  if(links.length === 0) return;
+  if(!confirm('Hapus semua produk dari etalase ini?')) return;
+  links = [];
+  render();
+  await saveLinks();
+  showToast('Etalase dikosongkan');
+});
+
+document.getElementById('shareBtn').addEventListener('click', async () => {
+  const url = window.location.href;
+  try{
+    if(navigator.share){
+      await navigator.share({ title: 'Etalase — Link Belanja Shopee', url });
+    } else {
+      await navigator.clipboard.writeText(url);
+      showToast('Link etalase disalin, siap dibagikan');
+    }
+  }catch(e){
+    try{
+      await navigator.clipboard.writeText(url);
+      showToast('Link etalase disalin, siap dibagikan');
+    }catch(e2){
+      showToast('Gagal membagikan link');
+    }
+  }
+});
+
+try{
+  storageMode = detectStorageMode();
+  updateStorageBadge();
+}catch(e){
+  storageBadge.classList.add('warn');
+  storageBadge.innerHTML = '<span class="dot"></span>Gagal memeriksa penyimpanan: ' + escapeHtml(e.message || String(e));
+  storageMode = 'memory';
+}
+loadLinks();
+
+window.addEventListener('error', (e) => {
+  console.error('Error tak tertangani:', e.error || e.message);
+});
+</script>
+</body>
+</html>
