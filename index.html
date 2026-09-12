@@ -1,0 +1,588 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Etalase — Link Belanja Shopee</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;600;700&family=IBM+Plex+Sans:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --bg:#1F1A24;
+    --bg-deep:#171319;
+    --card:#2A2330;
+    --card-hi:#332A3B;
+    --border:#3E3446;
+    --accent:#E8A33D;
+    --accent-soft:#F1C579;
+    --coral:#FF6B4A;
+    --text:#F3ECDE;
+    --text-muted:#B6ABC4;
+    --text-faint:#8A8096;
+    --radius:14px;
+  }
+  *{box-sizing:border-box;}
+  html,body{margin:0;padding:0;}
+  body{
+    background:
+      radial-gradient(1200px 600px at 12% -10%, rgba(232,163,61,0.10), transparent 60%),
+      radial-gradient(900px 500px at 100% 0%, rgba(255,107,74,0.08), transparent 55%),
+      var(--bg);
+    color:var(--text);
+    font-family:'IBM Plex Sans', sans-serif;
+    min-height:100vh;
+    line-height:1.5;
+  }
+  .display{font-family:'Space Grotesk', sans-serif;}
+
+  .wrap{max-width:1180px;margin:0 auto;padding:0 28px 80px;}
+
+  /* Two-column layout: sidebar + main */
+  .layout{
+    display:flex;
+    align-items:flex-start;
+    gap:32px;
+    margin-top:44px;
+  }
+  .sidebar{
+    width:210px;
+    flex-shrink:0;
+    position:sticky;
+    top:24px;
+    background:var(--card);
+    border:1px solid var(--border);
+    border-radius:var(--radius);
+    padding:18px 16px;
+  }
+  .sidebar-title{
+    font-family:'Space Grotesk';font-weight:600;font-size:13px;
+    color:var(--text-faint);
+    text-transform:none;
+    margin-bottom:12px;
+    padding:0 6px;
+  }
+  .cat-list{display:flex;flex-direction:column;gap:3px;}
+  .cat-item{
+    display:flex;align-items:center;justify-content:space-between;gap:8px;
+    background:none;border:none;
+    color:var(--text-muted);
+    font-family:'IBM Plex Sans';font-size:14px;
+    padding:9px 10px;border-radius:8px;
+    cursor:pointer;text-align:left;width:100%;
+    transition:background .15s ease, color .15s ease;
+  }
+  .cat-item:hover{background:var(--card-hi); color:var(--text);}
+  .cat-item.active{background:var(--bg-deep); color:var(--accent-soft); font-weight:500;}
+  .cat-item .cat-count{
+    font-size:11.5px;color:var(--text-faint);
+    background:var(--bg-deep);
+    padding:2px 7px;border-radius:999px;
+    flex-shrink:0;
+  }
+  .cat-item.active .cat-count{color:var(--accent-soft);}
+  .main-content{flex:1;min-width:0;}
+
+  @media (max-width: 780px){
+    .layout{flex-direction:column;}
+    .sidebar{
+      width:100%;position:static;
+      padding:14px;
+    }
+    .cat-list{flex-direction:row;flex-wrap:wrap;}
+    .cat-item{width:auto;background:var(--bg-deep);}
+  }
+
+  /* Top bar */
+  .topbar{
+    display:flex;align-items:center;justify-content:space-between;
+    padding:26px 0 0;
+  }
+  .brand{display:flex;align-items:center;gap:10px;}
+  .brand-mark{
+    width:34px;height:34px;border-radius:9px;
+    background:linear-gradient(135deg, var(--accent), var(--coral));
+    display:flex;align-items:center;justify-content:center;
+    font-family:'Space Grotesk';font-weight:700;color:#1F1A24;font-size:16px;
+  }
+  .brand-name{font-family:'Space Grotesk';font-weight:600;font-size:16px;letter-spacing:0.2px;}
+
+  .share-btn{
+    display:flex;align-items:center;gap:8px;
+    background:var(--card);
+    border:1px solid var(--border);
+    color:var(--text);
+    font-family:'IBM Plex Sans';font-weight:500;font-size:14px;
+    padding:10px 16px;border-radius:999px;
+    cursor:pointer;
+    transition:background .15s ease, border-color .15s ease, transform .1s ease;
+  }
+  .share-btn:hover{background:var(--card-hi); border-color:var(--accent);}
+  .share-btn:active{transform:scale(0.97);}
+  .share-btn svg{width:15px;height:15px;stroke:var(--accent-soft);}
+
+  /* Hero */
+  .hero{padding:56px 0 36px;}
+  .eyebrow-chip{
+    display:inline-flex;align-items:center;gap:8px;
+    background:var(--card);border:1px solid var(--border);
+    padding:6px 14px;border-radius:999px;
+    font-size:13px;color:var(--text-muted);margin-bottom:20px;
+  }
+  .eyebrow-chip .dot{width:7px;height:7px;border-radius:50%;background:var(--accent);}
+  h1.headline{
+    font-size:44px;line-height:1.08;font-weight:700;margin:0 0 16px;
+    max-width:620px;letter-spacing:-0.5px;
+  }
+  .headline .accent-word{color:var(--accent);}
+  .sub{
+    font-size:16.5px;color:var(--text-muted);max-width:480px;margin:0;
+  }
+
+  /* Ticket form */
+  .ticket{
+    background:var(--card);
+    border:1px solid var(--border);
+    border-radius:var(--radius);
+    padding:26px 26px 22px;
+    position:relative;
+  }
+  .ticket::before, .ticket::after{
+    content:"";position:absolute;top:50%;transform:translateY(-50%);
+    width:22px;height:22px;border-radius:50%;background:var(--bg);
+    display:none;
+  }
+  .ticket-label{
+    font-family:'Space Grotesk';font-weight:600;font-size:14px;
+    color:var(--accent-soft);margin-bottom:16px;
+    display:flex;align-items:center;gap:8px;
+  }
+  form#link-form{
+    display:grid;
+    grid-template-columns:1.15fr 1.4fr 0.85fr 0.85fr auto;
+    gap:12px;
+  }
+  @media (max-width: 760px){
+    form#link-form{grid-template-columns:1fr;}
+  }
+  .field label{
+    display:block;font-size:12px;color:var(--text-faint);margin-bottom:6px;
+  }
+  .field input{
+    width:100%;
+    background:var(--bg-deep);
+    border:1px solid var(--border);
+    color:var(--text);
+    padding:11px 12px;border-radius:9px;
+    font-family:'IBM Plex Sans';font-size:14.5px;
+    outline:none;
+    transition:border-color .15s ease;
+  }
+  .field input:focus{border-color:var(--accent);}
+  .field input::placeholder{color:var(--text-faint);}
+  .add-btn{
+    align-self:end;
+    background:var(--accent);
+    color:#241C0F;
+    border:none;border-radius:9px;
+    padding:11px 20px;
+    font-family:'Space Grotesk';font-weight:600;font-size:14.5px;
+    cursor:pointer;
+    white-space:nowrap;
+    transition:background .15s ease, transform .1s ease;
+  }
+  .add-btn:hover{background:var(--accent-soft);}
+  .add-btn:active{transform:scale(0.97);}
+  .form-msg{
+    grid-column:1 / -1;font-size:13px;color:var(--coral);min-height:16px;margin-top:2px;
+  }
+
+  /* Section header for list */
+  .list-header{
+    display:flex;align-items:baseline;justify-content:space-between;
+    margin:52px 0 18px;
+  }
+  .list-header h2{
+    font-family:'Space Grotesk';font-size:20px;font-weight:600;margin:0;
+  }
+  .count-tag{font-size:13px;color:var(--text-faint);}
+  .clear-all{
+    background:none;border:none;color:var(--text-faint);
+    font-size:12.5px;cursor:pointer;text-decoration:underline;
+    text-underline-offset:3px;
+  }
+  .clear-all:hover{color:var(--coral);}
+
+  /* Grid of product cards */
+  .grid{
+    display:grid;
+    grid-template-columns:repeat(auto-fill, minmax(230px, 1fr));
+    gap:16px;
+  }
+  .card{
+    background:var(--card);
+    border:1px solid var(--border);
+    border-radius:12px;
+    padding:18px 18px 16px;
+    position:relative;
+    display:flex;flex-direction:column;
+    min-height:150px;
+  }
+  .card::before, .card::after{
+    content:"";position:absolute;
+    width:16px;height:16px;border-radius:50%;
+    background:var(--bg);
+    top:50%;transform:translateY(-50%);
+  }
+  .card::before{left:-9px;}
+  .card::after{right:-9px;}
+  .card-cat{
+    display:inline-block;align-self:flex-start;
+    font-size:11px;font-weight:500;
+    color:var(--accent-soft);
+    background:rgba(232,163,61,0.12);
+    border:1px solid rgba(232,163,61,0.3);
+    padding:3px 9px;border-radius:999px;
+    margin-bottom:9px;
+  }
+  .card-title{
+    font-family:'Space Grotesk';font-weight:600;font-size:15.5px;
+    margin:0 0 6px;
+    word-break:break-word;
+  }
+  .card-note{
+    font-size:13.5px;color:var(--text-muted);margin:0 0 14px;flex:1;
+    word-break:break-word;
+  }
+  .card-price{
+    display:inline-block;
+    font-family:'Space Grotesk';font-weight:600;font-size:13px;
+    color:var(--accent-soft);
+    margin-bottom:14px;
+  }
+  .card-actions{display:flex;gap:8px;align-items:center;}
+  .buy-btn{
+    flex:1;
+    text-align:center;
+    background:linear-gradient(135deg, var(--coral), #ff8a63);
+    color:#241205;
+    font-family:'Space Grotesk';font-weight:600;font-size:13.5px;
+    padding:9px 10px;border-radius:8px;text-decoration:none;
+    transition:filter .15s ease;
+  }
+  .buy-btn:hover{filter:brightness(1.08);}
+  .icon-btn{
+    width:34px;height:34px;flex-shrink:0;
+    display:flex;align-items:center;justify-content:center;
+    background:var(--bg-deep);border:1px solid var(--border);
+    border-radius:8px;cursor:pointer;color:var(--text-faint);
+    transition:border-color .15s ease, color .15s ease;
+  }
+  .icon-btn:hover{border-color:var(--coral); color:var(--coral);}
+  .icon-btn svg{width:14px;height:14px;}
+
+  /* Empty state */
+  .empty{
+    border:1px dashed var(--border);
+    border-radius:var(--radius);
+    padding:44px 24px;
+    text-align:center;
+    color:var(--text-faint);
+    font-size:14.5px;
+  }
+  .empty strong{color:var(--text-muted); display:block; font-family:'Space Grotesk'; font-size:16px; margin-bottom:6px; font-weight:600;}
+
+  /* Toast */
+  .toast{
+    position:fixed;left:50%;bottom:28px;transform:translateX(-50%) translateY(20px);
+    background:var(--accent);color:#241C0F;
+    font-family:'Space Grotesk';font-weight:600;font-size:13.5px;
+    padding:11px 20px;border-radius:999px;
+    opacity:0;pointer-events:none;
+    transition:opacity .2s ease, transform .2s ease;
+    box-shadow:0 10px 30px rgba(0,0,0,0.35);
+    z-index:50;
+  }
+  .toast.show{opacity:1;transform:translateX(-50%) translateY(0);}
+
+  .storage-badge{
+    display:inline-flex;align-items:center;gap:7px;
+    font-size:12px;padding:5px 12px;border-radius:999px;
+    border:1px solid var(--border);color:var(--text-faint);
+    margin-bottom:18px;
+  }
+  .storage-badge .dot{width:6px;height:6px;border-radius:50%;background:var(--text-faint);}
+  .storage-badge.ok{color:#8FD19E;border-color:rgba(143,209,158,0.35);}
+  .storage-badge.ok .dot{background:#8FD19E;}
+  .storage-badge.warn{color:var(--coral);border-color:rgba(255,107,74,0.35);}
+  .storage-badge.warn .dot{background:var(--coral);}
+
+  footer{
+    margin-top:60px;
+    padding-top:20px;border-top:1px solid var(--border);
+    font-size:12.5px;color:var(--text-faint);
+    display:flex;justify-content:space-between;flex-wrap:wrap;gap:8px;
+  }
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <div class="topbar">
+    <div class="brand">
+      <div class="brand-mark">E</div>
+      <div class="brand-name">Etalase</div>
+    </div>
+    <button class="share-btn" id="shareBtn">
+      <svg viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="18" cy="5" r="3"/><circle cx="6" cy="12" r="3"/><circle cx="18" cy="19" r="3"/><line x1="8.6" y1="10.6" x2="15.4" y2="6.4"/><line x1="8.6" y1="13.4" x2="15.4" y2="17.6"/></svg>
+      Bagikan etalase
+    </button>
+  </div>
+
+  <div class="hero">
+    <div class="eyebrow-chip"><span class="dot"></span>Etalase publik &middot; siapa pun yang buka link ini bisa lihat isinya</div>
+    <h1 class="headline">Satu rak berisi <span class="accent-word">semua link Shopee</span> pilihanmu.</h1>
+    <p class="sub">Tambahkan link produk Shopee di bawah, lalu bagikan halaman ini ke pengikutmu. Tidak perlu bikin ulang tiap kali ada produk baru.</p>
+  </div>
+
+  <div class="layout">
+    <aside class="sidebar">
+      <div class="sidebar-title">Kategori</div>
+      <nav class="cat-list" id="cat-list"></nav>
+    </aside>
+
+    <div class="main-content">
+      <div class="ticket">
+        <span class="storage-badge" id="storage-badge"><span class="dot"></span>Memeriksa penyimpanan…</span>
+        <div class="ticket-label">+ Tambah produk baru</div>
+        <form id="link-form">
+          <div class="field">
+            <label for="f-title">Nama produk</label>
+            <input id="f-title" type="text" placeholder="Contoh: Kipas angin mini USB" maxlength="80">
+          </div>
+          <div class="field">
+            <label for="f-url">Link Shopee</label>
+            <input id="f-url" type="text" placeholder="https://shopee.co.id/...">
+          </div>
+          <div class="field">
+            <label for="f-category">Kategori</label>
+            <input id="f-category" type="text" list="category-options" placeholder="Contoh: Elektronik" maxlength="30">
+            <datalist id="category-options"></datalist>
+          </div>
+          <div class="field">
+            <label for="f-price">Harga / catatan</label>
+            <input id="f-price" type="text" placeholder="Rp45.000" maxlength="40">
+          </div>
+          <button type="submit" class="add-btn">Tambah link</button>
+          <div class="form-msg" id="form-msg"></div>
+        </form>
+      </div>
+
+      <div class="list-header">
+        <h2>Produk di etalase</h2>
+        <span class="count-tag" id="count-tag">memuat…</span>
+      </div>
+
+      <div id="list-area">
+        <div class="empty">
+          <strong>Etalase masih kosong</strong>
+          Tambahkan link pertamamu lewat formulir di atas.
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <footer>
+    <span>Data tersimpan otomatis dan tampil untuk siapa pun yang membuka link etalase ini.</span>
+    <button class="clear-all" id="clearAll">Kosongkan etalase</button>
+  </footer>
+
+</div>
+
+<div class="toast" id="toast">Link disalin</div>
+
+<script>
+const STORAGE_KEY = 'etalase-links';
+const listArea = document.getElementById('list-area');
+const countTag = document.getElementById('count-tag');
+const form = document.getElementById('link-form');
+const formMsg = document.getElementById('form-msg');
+const toast = document.getElementById('toast');
+const catList = document.getElementById('cat-list');
+const categoryOptions = document.getElementById('category-options');
+
+const DEFAULT_CATEGORY = 'Umum';
+let links = [];
+let activeCategory = null; // null = semua kategori
+let memoryFallback = null; // dipakai kalau localStorage pun diblokir browser (mis. dibuka lewat file://)
+
+const storageBadge = document.getElementById('storage-badge');
+
+// Ada 3 tingkat penyimpanan, dari yang paling tahan lama ke paling sementara:
+// 1) window.storage  — disediakan saat halaman ini dibuka lewat pratinjau Claude
+// 2) localStorage     — jalan kalau halaman dibuka lewat http(s), termasuk hosting sendiri
+// 3) memori sesi       — dipakai kalau keduanya diblokir (umumnya saat file dibuka langsung
+//    dengan cara diklik dua kali / protokol file://, browser menolak akses localStorage)
+let storageMode = 'checking';
+
+function detectStorageMode(){
+  if(typeof window.storage !== 'undefined' && window.storage){
+    return 'cloud';
+  }
+  try{
+    const testKey = '__etalase_test__';
+    localStorage.setItem(testKey, '1');
+    localStorage.removeItem(testKey);
+    return 'local';
+  }catch(e){
+    return 'memory';
+  }
+}
+
+function updateStorageBadge(){
+  storageBadge.classList.remove('ok','warn');
+  if(storageMode === 'cloud' || storageMode === 'local'){
+    storageBadge.classList.add('ok');
+    storageBadge.innerHTML = '<span class="dot"></span>Tersimpan otomatis';
+  } else {
+    storageBadge.classList.add('warn');
+    storageBadge.innerHTML = '<span class="dot"></span>Belum tersimpan permanen — buka halaman ini lewat hosting (bukan diklik dua kali dari folder) agar data tidak hilang saat refresh';
+  }
+}
+
+async function storageGet(key, shared){
+  if(storageMode === 'cloud'){
+    try{ return await window.storage.get(key, shared); }
+    catch(e){ return null; }
+  }
+  if(storageMode === 'local'){
+    try{
+      const raw = localStorage.getItem(key);
+      return raw ? { key, value: raw, shared } : null;
+    }catch(e){ return null; }
+  }
+  // storageMode === 'memory'
+  return memoryFallback ? { key, value: memoryFallback, shared } : null;
+}
+
+async function storageSet(key, value, shared){
+  if(storageMode === 'cloud'){
+    return await window.storage.set(key, value, shared);
+  }
+  if(storageMode === 'local'){
+    localStorage.setItem(key, value);
+    return { key, value, shared };
+  }
+  memoryFallback = value;
+  return { key, value, shared };
+}
+
+function showToast(msg){
+  toast.textContent = msg;
+  toast.classList.add('show');
+  clearTimeout(showToast._t);
+  showToast._t = setTimeout(()=> toast.classList.remove('show'), 2200);
+}
+
+function escapeHtml(str){
+  const d = document.createElement('div');
+  d.textContent = str;
+  return d.innerHTML;
+}
+
+function normalizeUrl(url){
+  url = url.trim();
+  if(!/^https?:\/\//i.test(url)) url = 'https://' + url;
+  return url;
+}
+
+async function loadLinks(){
+  try{
+    const result = await storageGet(STORAGE_KEY, true);
+    links = result && result.value ? JSON.parse(result.value) : [];
+  }catch(e){
+    links = [];
+  }
+  render();
+}
+
+async function saveLinks(){
+  try{
+    const result = await storageSet(STORAGE_KEY, JSON.stringify(links), true);
+    if(!result){
+      showToast('Gagal menyimpan, coba lagi');
+    }
+  }catch(e){
+    showToast('Gagal menyimpan, coba lagi');
+  }
+}
+
+function getCategoryCounts(){
+  const counts = {};
+  links.forEach(item => {
+    const cat = item.category || DEFAULT_CATEGORY;
+    counts[cat] = (counts[cat] || 0) + 1;
+  });
+  return counts;
+}
+
+function renderSidebar(){
+  const counts = getCategoryCounts();
+  const categories = Object.keys(counts).sort((a,b)=> a.localeCompare(b, 'id'));
+
+  // keep datalist in sync so the add-form can suggest existing categories
+  categoryOptions.innerHTML = categories.map(c => `<option value="${escapeHtml(c)}"></option>`).join('');
+
+  // if the active category no longer exists, reset to "semua"
+  if(activeCategory && !categories.includes(activeCategory)){
+    activeCategory = null;
+  }
+
+  const items = [
+    `<button class="cat-item ${activeCategory === null ? 'active' : ''}" data-cat="">
+      <span>Semua</span><span class="cat-count">${links.length}</span>
+    </button>`,
+    ...categories.map(cat => `
+      <button class="cat-item ${activeCategory === cat ? 'active' : ''}" data-cat="${escapeHtml(cat)}">
+        <span>${escapeHtml(cat)}</span><span class="cat-count">${counts[cat]}</span>
+      </button>
+    `)
+  ];
+  catList.innerHTML = items.join('');
+
+  catList.querySelectorAll('.cat-item').forEach(btn => {
+    btn.addEventListener('click', () => {
+      activeCategory = btn.dataset.cat || null;
+      render();
+    });
+  });
+}
+
+function render(){
+  renderSidebar();
+
+  const filtered = activeCategory
+    ? links.filter(item => (item.category || DEFAULT_CATEGORY) === activeCategory)
+    : links;
+
+  countTag.textContent = filtered.length + ' produk' + (activeCategory ? ` di "${activeCategory}"` : '');
+
+  if(links.length === 0){
+    listArea.innerHTML = `<div class="empty"><strong>Etalase masih kosong</strong>Tambahkan link pertamamu lewat formulir di atas.</div>`;
+    return;
+  }
+  if(filtered.length === 0){
+    listArea.innerHTML = `<div class="empty"><strong>Belum ada produk di kategori ini</strong>Pilih kategori lain atau tambahkan produk baru.</div>`;
+    return;
+  }
+
+  const sorted = [...filtered].sort((a,b)=> b.createdAt - a.createdAt);
+  listArea.innerHTML = `<div class="grid">${sorted.map(item => `
+    <div class="card" data-id="${item.id}">
+      <span class="card-cat">${escapeHtml(item.category || DEFAULT_CATEGORY)}</span>
+      <div class="card-title">${escapeHtml(item.title)}</div>
+      ${item.price ? `<div class="card-price">${escapeHtml(item.price)}</div>` : `<div class="card-note">Ketuk untuk membuka produk di Shopee.</div>`}
+      <div class="card-actions">
+        <a class="buy-btn" href="${escapeHtml(item.url)}" target="_blank" rel="noopener noreferrer">Beli di Shopee</a>
+        <button class="icon-btn" title="Salin link" onclick="copyLink('${item.id}')">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>
+  </button>
