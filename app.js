@@ -28,16 +28,16 @@
       firebaseConfig yang muncul, tempel di bawah ini.
    ============================================================ */
 const firebaseConfig = {
-  apiKey: "GANTI_DENGAN_API_KEY",
-  authDomain: "GANTI.firebaseapp.com",
-  projectId: "GANTI_PROJECT_ID",
-  storageBucket: "GANTI.appspot.com",
-  messagingSenderId: "GANTI_SENDER_ID",
-  appId: "GANTI_APP_ID"
+  apiKey: "AIzaSyAtgP2bhU1pBOWqvgGT-fGqO4ie6Vxlb0w",
+  authDomain: "yshop-links.firebaseapp.com",
+  projectId: "yshop-links",
+  storageBucket: "yshop-links.firebasestorage.app",
+  messagingSenderId: "340420205806",
+  appId: "1:340420205806:web:12d7b91be5db047c6da7ff"
 };
 /* ============================================================ */
 
-const isConfigured = !firebaseConfig.apiKey.includes('GANTI');
+const isConfigured = !firebaseConfig.apiKey.includes('AIzaSyAtgP2bhU1pBOWqvgGT-fGqO4ie6Vxlb0w');
 const DEFAULT_CATEGORY = 'Umum';
 const isAdmin = document.body.dataset.mode === 'admin';
 
