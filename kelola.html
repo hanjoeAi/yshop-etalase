@@ -1,0 +1,133 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Kelola Etalase — Shopee</title>
+<link rel="stylesheet" href="style.css">
+<meta name="robots" content="noindex, nofollow">
+</head>
+<body data-mode="admin">
+<div class="wrap">
+
+  <div class="topbar">
+    <div class="brand">
+      <div class="brand-mark">E</div>
+      <div class="brand-name">Etalase &middot; Mode kelola</div>
+    </div>
+    <div class="topbar-actions">
+      <span class="admin-email" id="admin-email" style="display:none;"></span>
+      <a class="btn-pill" href="index.html">
+        <svg viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>
+        Lihat tampilan publik
+      </a>
+      <button class="btn-pill" id="shareBtn" data-share-url="">
+        <svg viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="18" cy="5" r="3"/><circle cx="6" cy="12" r="3"/><circle cx="18" cy="19" r="3"/><line x1="8.6" y1="10.6" x2="15.4" y2="6.4"/><line x1="8.6" y1="13.4" x2="15.4" y2="17.6"/></svg>
+        Bagikan etalase publik
+      </button>
+      <button class="btn-pill" id="logoutBtn" style="display:none;">Keluar</button>
+    </div>
+  </div>
+
+  <!-- Gerbang login: tampil sampai berhasil masuk -->
+  <div class="login-gate" id="login-gate">
+    <div class="login-card">
+      <div class="eyebrow-chip"><span class="dot"></span>Khusus admin</div>
+      <h1 class="headline" style="font-size:30px;">Masuk untuk kelola etalase</h1>
+      <p class="sub" style="margin-bottom:24px;">Gunakan email &amp; password yang kamu daftarkan di Firebase Authentication.</p>
+      <form id="login-form">
+        <div class="field" style="margin-bottom:12px;">
+          <label for="login-email">Email</label>
+          <input id="login-email" type="email" placeholder="kamu@email.com" required>
+        </div>
+        <div class="field" style="margin-bottom:16px;">
+          <label for="login-password">Password</label>
+          <input id="login-password" type="password" placeholder="••••••••" required>
+        </div>
+        <button type="submit" class="add-btn" style="width:100%;">Masuk</button>
+        <div class="form-msg" id="login-msg"></div>
+      </form>
+    </div>
+  </div>
+
+  <!-- Konten admin: tersembunyi sampai berhasil login -->
+  <div id="admin-content" style="display:none;">
+    <div class="hero">
+      <div class="eyebrow-chip"><span class="dot"></span>Halaman ini hanya untuk kamu &mdash; jangan dibagikan ke orang lain</div>
+      <h1 class="headline">Kelola isi <span class="accent-word">etalase Shopee</span> kamu.</h1>
+      <p class="sub">Tambah, hapus, dan atur kategori produk di sini. Perubahan langsung tampil di halaman publik.</p>
+    </div>
+
+    <div class="layout">
+      <aside class="sidebar">
+        <div class="sidebar-title">Kategori</div>
+        <nav class="cat-list" id="cat-list"></nav>
+      </aside>
+
+      <div class="main-content">
+        <div class="ticket">
+          <span class="storage-badge" id="storage-badge"><span class="dot"></span>Memeriksa penyimpanan…</span>
+          <div class="ticket-label">+ Tambah produk baru</div>
+          <form id="link-form">
+            <div class="form-fields">
+              <div class="field">
+                <label for="f-title">Nama produk</label>
+                <input id="f-title" type="text" placeholder="Contoh: Kipas angin mini USB" maxlength="80">
+              </div>
+              <div class="field">
+                <label for="f-url">Link Shopee</label>
+                <input id="f-url" type="text" placeholder="https://shopee.co.id/...">
+              </div>
+              <div class="field">
+                <label for="f-category">Kategori</label>
+                <input id="f-category" type="text" list="category-options" placeholder="Contoh: Elektronik" maxlength="30">
+                <datalist id="category-options"></datalist>
+              </div>
+              <div class="field">
+                <label for="f-image">Gambar produk (opsional)</label>
+                <input id="f-image" type="text" placeholder="Tempel link gambar di sini">
+              </div>
+              <div class="field">
+                <label for="f-price">Harga / catatan</label>
+                <input id="f-price" type="text" placeholder="Rp45.000" maxlength="40">
+              </div>
+              <button type="submit" class="add-btn">Tambah link</button>
+              <div class="form-msg" id="form-msg"></div>
+            </div>
+          </form>
+        </div>
+
+        <div class="list-header">
+          <h2>Produk di etalase</h2>
+          <span class="count-tag" id="count-tag">memuat…</span>
+        </div>
+
+        <div id="list-area">
+          <div class="empty">
+            <strong>Memuat etalase…</strong>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <footer>
+      <span>Cara ambil link gambar: buka produk di Shopee &rarr; klik kanan gambarnya &rarr; "Copy image address".</span>
+      <button class="clear-all" id="clearAll">Kosongkan etalase</button>
+    </footer>
+  </div>
+
+</div>
+
+<div class="toast" id="toast"></div>
+
+<!-- Firebase SDK (compat) -->
+<script src="https://www.gstatic.com/firebasejs/10.13.2/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.13.2/firebase-auth-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.13.2/firebase-firestore-compat.js"></script>
+
+<script src="app.js"></script>
+<script>
+  document.getElementById('shareBtn').dataset.shareUrl = new URL('index.html', window.location.href).href;
+</script>
+</body>
+</html>
