@@ -37,7 +37,7 @@ const firebaseConfig = {
 };
 /* ============================================================ */
 
-const isConfigured = !firebaseConfig.apiKey.includes('AIzaSyAtgP2bhU1pBOWqvgGT-fGqO4ie6Vxlb0w');
+const isConfigured = Boolean(firebaseConfig.apiKey) && firebaseConfig.apiKey.length > 20 && !firebaseConfig.apiKey.startsWith('GANTI');
 const DEFAULT_CATEGORY = 'Umum';
 const isAdmin = document.body.dataset.mode === 'admin';
 
