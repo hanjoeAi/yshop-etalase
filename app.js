@@ -40,33 +40,39 @@ const firebaseConfig = {
 const isConfigured = Boolean(firebaseConfig.apiKey) && firebaseConfig.apiKey.length > 20 && !firebaseConfig.apiKey.startsWith('GANTI');
 
 /* ============================================================
-   KONFIGURASI IMGBB (untuk fitur upload gambar produk)
+   KONFIGURASI CLOUDINARY (untuk fitur upload gambar produk)
    ------------------------------------------------------------
-   1. Daftar gratis di https://imgbb.com
-   2. Buka https://api.imgbb.com, klik "Get API key" (langsung
-      keluar, tanpa perlu kartu kredit)
-   3. Salin key-nya, tempel di bawah ini
+   1. Daftar gratis di https://cloudinary.com (tanpa kartu kredit)
+   2. Di Dashboard, salin "Cloud name" (terlihat di halaman utama)
+   3. Buka Settings (ikon gerigi) > tab "Upload"
+      > scroll ke "Upload presets" > klik "Add upload preset"
+   4. Ganti "Signing Mode" dari "Signed" jadi "Unsigned", klik Save
+   5. Salin nama preset yang baru dibuat (mis. "abcdxyz")
+   6. Tempel Cloud name dan nama preset di bawah ini
    ============================================================ */
-const IMGBB_API_KEY = 'd4623b4eec3c006f56cf925ca5067cdb';
+const CLOUDINARY_CLOUD_NAME = 'lbnl3yrt';
+const CLOUDINARY_UPLOAD_PRESET = 'yshop09';
 /* ============================================================ */
 
-const isImgbbConfigured = Boolean(IMGBB_API_KEY) && IMGBB_API_KEY.length > 10 && !IMGBB_API_KEY.startsWith('GANTI');
+const isCloudinaryConfigured = Boolean(CLOUDINARY_CLOUD_NAME) && !CLOUDINARY_CLOUD_NAME.startsWith('GANTI')
+  && Boolean(CLOUDINARY_UPLOAD_PRESET) && !CLOUDINARY_UPLOAD_PRESET.startsWith('GANTI');
 
-async function uploadToImgbb(file){
-  if(!isImgbbConfigured){
-    throw new Error('Upload gambar belum dikonfigurasi (lihat IMGBB_API_KEY di app.js). Pakai link gambar manual dulu, ya.');
+async function uploadImage(file){
+  if(!isCloudinaryConfigured){
+    throw new Error('Upload gambar belum dikonfigurasi (lihat CLOUDINARY_CLOUD_NAME di app.js). Pakai link gambar manual dulu, ya.');
   }
   const formData = new FormData();
-  formData.append('image', file);
-  const res = await fetch('https://api.imgbb.com/1/upload?key=' + IMGBB_API_KEY, {
+  formData.append('file', file);
+  formData.append('upload_preset', CLOUDINARY_UPLOAD_PRESET);
+  const res = await fetch('https://api.cloudinary.com/v1_1/' + CLOUDINARY_CLOUD_NAME + '/image/upload', {
     method: 'POST',
     body: formData
   });
   const data = await res.json();
-  if(!res.ok || !data.success){
+  if(!res.ok || !data.secure_url){
     throw new Error((data.error && data.error.message) || 'Upload gambar gagal.');
   }
-  return data.data.url;
+  return data.secure_url;
 }
 
 const DEFAULT_CATEGORY = 'Umum';
@@ -290,7 +296,7 @@ if(isAdmin){
         let imageUrl = '';
         if(imageFile){
           if(addBtn){ addBtn.disabled = true; addBtn.textContent = 'Mengunggah gambar…'; }
-          imageUrl = await uploadToImgbb(imageFile);
+          imageUrl = await uploadImage(imageFile);
         } else if(imageUrlRaw){
           imageUrl = normalizeUrl(imageUrlRaw);
           try{ new URL(imageUrl); }catch(e){
