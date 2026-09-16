@@ -38,6 +38,37 @@ const firebaseConfig = {
 /* ============================================================ */
 
 const isConfigured = Boolean(firebaseConfig.apiKey) && firebaseConfig.apiKey.length > 20 && !firebaseConfig.apiKey.startsWith('GANTI');
+
+/* ============================================================
+   KONFIGURASI IMGBB (untuk fitur upload gambar produk)
+   ------------------------------------------------------------
+   1. Daftar gratis di https://imgbb.com
+   2. Buka https://api.imgbb.com, klik "Get API key" (langsung
+      keluar, tanpa perlu kartu kredit)
+   3. Salin key-nya, tempel di bawah ini
+   ============================================================ */
+const IMGBB_API_KEY = 'd4623b4eec3c006f56cf925ca5067cdb';
+/* ============================================================ */
+
+const isImgbbConfigured = Boolean(IMGBB_API_KEY) && IMGBB_API_KEY.length > 10 && !IMGBB_API_KEY.startsWith('GANTI');
+
+async function uploadToImgbb(file){
+  if(!isImgbbConfigured){
+    throw new Error('Upload gambar belum dikonfigurasi (lihat IMGBB_API_KEY di app.js). Pakai link gambar manual dulu, ya.');
+  }
+  const formData = new FormData();
+  formData.append('image', file);
+  const res = await fetch('https://api.imgbb.com/1/upload?key=' + IMGBB_API_KEY, {
+    method: 'POST',
+    body: formData
+  });
+  const data = await res.json();
+  if(!res.ok || !data.success){
+    throw new Error((data.error && data.error.message) || 'Upload gambar gagal.');
+  }
+  return data.data.url;
+}
+
 const DEFAULT_CATEGORY = 'Umum';
 const isAdmin = document.body.dataset.mode === 'admin';
 
@@ -231,14 +262,19 @@ if(isAdmin){
   };
 
   if(form){
+    const addBtn = form.querySelector('.add-btn');
+    const fileInput = document.getElementById('f-image-file');
+
     form.addEventListener('submit', async (e) => {
       e.preventDefault();
       formMsg.textContent = '';
+      const originalBtnLabel = addBtn ? addBtn.textContent : '';
       try{
         const title = document.getElementById('f-title').value.trim();
         const urlRaw = document.getElementById('f-url').value.trim();
         const categoryRaw = document.getElementById('f-category').value.trim();
-        const image = document.getElementById('f-image').value.trim();
+        const imageUrlRaw = document.getElementById('f-image').value.trim();
+        const imageFile = fileInput && fileInput.files && fileInput.files[0];
         const price = document.getElementById('f-price').value.trim();
 
         if(!title || !urlRaw){
@@ -250,9 +286,13 @@ if(isAdmin){
           formMsg.textContent = 'Link Shopee belum valid.';
           return;
         }
+
         let imageUrl = '';
-        if(image){
-          imageUrl = normalizeUrl(image);
+        if(imageFile){
+          if(addBtn){ addBtn.disabled = true; addBtn.textContent = 'Mengunggah gambar…'; }
+          imageUrl = await uploadToImgbb(imageFile);
+        } else if(imageUrlRaw){
+          imageUrl = normalizeUrl(imageUrlRaw);
           try{ new URL(imageUrl); }catch(e){
             formMsg.textContent = 'Link gambar belum valid.';
             return;
@@ -270,6 +310,8 @@ if(isAdmin){
       }catch(err){
         console.error('Gagal menambah produk:', err);
         formMsg.textContent = 'Terjadi error: ' + (err && err.message ? err.message : String(err));
+      }finally{
+        if(addBtn){ addBtn.disabled = false; addBtn.textContent = originalBtnLabel; }
       }
     });
   }
