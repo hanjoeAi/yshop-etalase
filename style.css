@@ -116,6 +116,15 @@ h1.headline{
 }
 .field input:focus{border-color:var(--accent);}
 .field input::placeholder{color:var(--text-faint);}
+.field input[type="file"]{
+  padding:8px;font-size:13px;cursor:pointer;
+}
+.field input[type="file"]::file-selector-button{
+  background:var(--bg-deep);color:var(--text);border:1px solid var(--border);
+  border-radius:6px;padding:6px 12px;margin-right:10px;cursor:pointer;
+  font-family:'IBM Plex Sans';font-size:12.5px;
+}
+.field input[type="file"]::file-selector-button:hover{border-color:var(--accent);}
 .add-btn{
   flex:0 0 auto;background:var(--accent);color:#241C0F;border:none;border-radius:9px;
   padding:12px 22px;font-family:'Space Grotesk';font-weight:600;font-size:14.5px;
