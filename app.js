@@ -15,14 +15,24 @@
           match /databases/{database}/documents {
             match /products/{productId} {
               allow read: if true;
-              allow write: if request.auth != null;
+              allow create, delete: if request.auth != null;
+              allow update: if request.auth != null
+                || request.resource.data.diff(resource.data).affectedKeys().hasOnly(['clicks']);
+            }
+            match /analytics/{docId} {
+              allow read: if request.auth != null;
+              allow write: if resource == null
+                || request.resource.data.diff(resource.data).affectedKeys().hasOnly(['pageViews']);
             }
           }
         }
 
      lalu klik "Publish". Ini artinya: SEMUA ORANG boleh membaca
      (etalase publik), tapi HANYA yang sudah login yang boleh
-     menambah/menghapus produk.
+     menambah/menghapus/mengubah produk — KECUALI kolom "clicks"
+     (jumlah klik), yang boleh ditambah pengunjung publik tanpa
+     login, dan kolom "pageViews" di analytics untuk hitung
+     kunjungan halaman.
    6. Project settings (ikon gerigi) > scroll ke "Your apps" >
       klik ikon web ( </> ) > daftarkan app > salin objek
       firebaseConfig yang muncul, tempel di bawah ini.
@@ -95,6 +105,11 @@ const formMsg = document.getElementById('form-msg');
 const categoryOptions = document.getElementById('category-options');
 const clearAllBtn = document.getElementById('clearAll');
 const loginGate = document.getElementById('login-gate');
+const statViews = document.getElementById('stat-views');
+const statClicks = document.getElementById('stat-clicks');
+const statList = document.getElementById('stat-list');
+
+let pageViews = 0;
 const adminContent = document.getElementById('admin-content');
 const loginForm = document.getElementById('login-form');
 const loginMsg = document.getElementById('login-msg');
@@ -185,7 +200,8 @@ function cardImageHtml(item){
 }
 
 function cardActionsHtml(item){
-  const buy = `<a class="buy-btn" href="${escapeHtml(item.url)}" target="_blank" rel="noopener noreferrer">Beli di Shopee</a>`;
+  const trackAttr = isAdmin ? '' : ` onclick="trackClick('${item.id}')"`;
+  const buy = `<a class="buy-btn" href="${escapeHtml(item.url)}" target="_blank" rel="noopener noreferrer"${trackAttr}>Beli di Shopee</a>`;
   const copy = `<button class="icon-btn" title="Salin link" onclick="copyLink('${item.id}')">
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>
     </button>`;
@@ -237,11 +253,43 @@ function startListening(){
       links = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
       updateStorageBadge('ok');
       render();
+      renderStats();
     },
     (err) => {
       updateStorageBadge('warn', 'Gagal memuat: ' + err.message);
     }
   );
+}
+
+function listenToStats(){
+  if(!statViews) return;
+  db.collection('analytics').doc('summary').onSnapshot(
+    (doc) => {
+      pageViews = (doc.exists && doc.data().pageViews) || 0;
+      renderStats();
+    },
+    () => { /* diamkan kalau gagal, bukan fitur inti */ }
+  );
+}
+
+function renderStats(){
+  if(!statViews) return;
+  statViews.textContent = pageViews.toLocaleString('id-ID');
+
+  const totalClicks = links.reduce((sum, item) => sum + (item.clicks || 0), 0);
+  statClicks.textContent = totalClicks.toLocaleString('id-ID');
+
+  if(links.length === 0){
+    statList.innerHTML = `<div class="empty" style="padding:20px;"><strong>Belum ada data</strong>Statistik klik per produk akan muncul di sini.</div>`;
+    return;
+  }
+  const ranked = [...links].sort((a,b) => (b.clicks || 0) - (a.clicks || 0));
+  statList.innerHTML = ranked.map(item => `
+    <div class="stat-row">
+      <span class="stat-row-title">${escapeHtml(item.title)}</span>
+      <span class="stat-row-count">${(item.clicks || 0).toLocaleString('id-ID')} klik</span>
+    </div>
+  `).join('');
 }
 
 window.copyLink = async function(id){
@@ -254,6 +302,22 @@ window.copyLink = async function(id){
     showToast('Gagal menyalin link');
   }
 };
+
+/* ---------- Statistik: kunjungan halaman & klik produk (publik saja) ---------- */
+
+window.trackClick = function(id){
+  if(isAdmin || !db) return;
+  db.collection('products').doc(id).update({
+    clicks: firebase.firestore.FieldValue.increment(1)
+  }).catch(() => {});
+};
+
+function trackPageView(){
+  if(isAdmin || !db) return;
+  db.collection('analytics').doc('summary').set({
+    pageViews: firebase.firestore.FieldValue.increment(1)
+  }, { merge: true }).catch(() => {});
+}
 
 /* ---------- Admin-only: auth + tulis data ---------- */
 
@@ -407,7 +471,9 @@ if(!isConfigured){
         links = [];
       }
     });
+    listenToStats();
   } else {
     startListening();
+    trackPageView();
   }
 }
